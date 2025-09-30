@@ -1,39 +1,30 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import { Checkbox } from '../../../components/ui/Checkbox';
 import Icon from '../../../components/AppIcon';
 
-const LoginForm = () => {
-  const navigate = useNavigate();
+const LoginForm = ({ onLogin }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     role: '',
-    rememberMe: false
+    rememberMe: false,
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
-  // Mock credentials for different roles
-  const mockCredentials = {
-    student: { email: 'student@psu.edu.ph', password: 'student123' },
-    instructor: { email: 'instructor@psu.edu.ph', password: 'instructor123' },
-    coordinator: { email: 'coordinator@psu.edu.ph', password: 'coordinator123' }
-  };
-
   const roleOptions = [
     { value: 'student', label: 'Student' },
     { value: 'instructor', label: 'Instructor' },
-    { value: 'coordinator', label: 'Coordinator' }
+    { value: 'coordinator', label: 'Coordinator' },
   ];
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors?.[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: '' }));
     }
   };
 
@@ -42,7 +33,7 @@ const LoginForm = () => {
 
     if (!formData?.email?.trim()) {
       newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/?.test(formData?.email)) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData?.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
 
@@ -57,46 +48,23 @@ const LoginForm = () => {
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors)?.length === 0;
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
-    e?.preventDefault();
-    
-    if (!validateForm()) return;
+    e.preventDefault();
 
+    if (!validateForm()) return;
     setIsLoading(true);
 
-    // Simulate authentication delay
-    setTimeout(() => {
-      const roleCredentials = mockCredentials?.[formData?.role];
-      
-      if (formData?.email === roleCredentials?.email && formData?.password === roleCredentials?.password) {
-        // Successful authentication
-        localStorage.setItem('userRole', formData?.role);
-        localStorage.setItem('isAuthenticated', 'true');
-        localStorage.setItem('userEmail', formData?.email);
-        
-        // Navigate to appropriate dashboard
-        switch (formData?.role) {
-          case 'student': navigate('/student-dashboard');
-            break;
-          case 'instructor': navigate('/instructor-dashboard');
-            break;
-          case 'coordinator': navigate('/coordinator-admin-panel');
-            break;
-          default:
-            navigate('/student-dashboard');
-        }
-      } else {
-        // Authentication failed
-        setErrors({
-          general: `Invalid credentials. Use ${roleCredentials?.email} / ${roleCredentials?.password} for ${formData?.role} access.`
-        });
-      }
-      
-      setIsLoading(false);
-    }, 1500);
+    try {
+      // Call the backend login passed from LoginPage
+      await onLogin(formData.email, formData.password, formData.role);
+    } catch (err) {
+      setErrors({ general: err.message || 'Login failed' });
+    }
+
+    setIsLoading(false);
   };
 
   const handleForgotPassword = () => {
@@ -117,7 +85,7 @@ const LoginForm = () => {
               <Icon name="AlertCircle" size={20} color="var(--color-error)" />
               <div>
                 <p className="text-sm font-medium text-red-800">Authentication Failed</p>
-                <p className="text-sm text-red-600 mt-1">{errors?.general}</p>
+                <p className="text-sm text-red-600 mt-1">{errors.general}</p>
               </div>
             </div>
           </div>
@@ -128,8 +96,8 @@ const LoginForm = () => {
           label="Email Address"
           type="email"
           placeholder="Enter your PSU email address"
-          value={formData?.email}
-          onChange={(e) => handleInputChange('email', e?.target?.value)}
+          value={formData.email}
+          onChange={(e) => handleInputChange('email', e.target.value)}
           error={errors?.email}
           required
           disabled={isLoading}
@@ -140,8 +108,8 @@ const LoginForm = () => {
           label="Password"
           type="password"
           placeholder="Enter your password"
-          value={formData?.password}
-          onChange={(e) => handleInputChange('password', e?.target?.value)}
+          value={formData.password}
+          onChange={(e) => handleInputChange('password', e.target.value)}
           error={errors?.password}
           required
           disabled={isLoading}
@@ -152,7 +120,7 @@ const LoginForm = () => {
           label="Select Your Role"
           placeholder="Choose your access level"
           options={roleOptions}
-          value={formData?.role}
+          value={formData.role}
           onChange={(value) => handleInputChange('role', value)}
           error={errors?.role}
           required
@@ -162,8 +130,8 @@ const LoginForm = () => {
         {/* Remember Me Checkbox */}
         <Checkbox
           label="Remember me on this device"
-          checked={formData?.rememberMe}
-          onChange={(e) => handleInputChange('rememberMe', e?.target?.checked)}
+          checked={formData.rememberMe}
+          onChange={(e) => handleInputChange('rememberMe', e.target.checked)}
           disabled={isLoading}
         />
 
@@ -194,7 +162,7 @@ const LoginForm = () => {
           >
             Forgot your password?
           </Button>
-          
+
           <Button
             type="button"
             variant="outline"

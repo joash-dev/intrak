@@ -9,6 +9,7 @@ import StudentDashboard from './pages/student-dashboard';
 import CoordinatorAdminPanel from './pages/coordinator-admin-panel';
 import DigitalLogbook from './pages/digital-logbook';
 import InstructorDashboard from './pages/instructor-dashboard';
+import RegisterPage from './pages/register';
 
 const Routes = () => {
   return (
@@ -17,7 +18,8 @@ const Routes = () => {
       <ScrollToTop />
       <RouterRoutes>
         {/* Define your route here */}
-        <Route path="/" element={<CoordinatorAdminPanel />} />
+        <Route path="/admin/coordinator" element={<CoordinatorAdminPanel />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/document-management" element={<DocumentManagement />} />
         <Route path="/student-dashboard" element={<StudentDashboard />} />
